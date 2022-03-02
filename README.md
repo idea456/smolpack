@@ -5,5 +5,6 @@ A very smol and minimal module bundler, made with Javascript to simulate a simpl
 - [x] Minifying features using terser
 - [ ] Code splitting
 - [ ] Custom configuration file
+- [ ] Detecting and resolving cyclic dependencies
 
 
