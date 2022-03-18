@@ -52,11 +52,6 @@ function checkResolvedPath(p1, p1Origin, p2, p2Origin) {
     return resolvedP1 === resolvedP2
 }
 
-function checkCyclicDependency(graph) {
-    // use depth-first search and traverse through the graph
-    return
-}
-
 // function checkResolvePath(firstPath, firstDirname, secondPath, seconDirname) {
 //     const resolvedFirstPath = path.resolve, 
 // }
@@ -65,18 +60,26 @@ function checkCyclicDependency(graph) {
 async function buildDependencyGraph(entry) {
     const entryModule = await readModule(entry)
     let modules = []
+    // Set object to check if the module path has already been checked, used for detecting cyclic dependencies
+    let checkedModules = new Set()
 
     // use breath-first search to traverse all modules
     let queue = [entryModule]
     while (queue.length > 0) {
         let module = queue.pop()
         for (let relativePath of module.depends_on) {
-            let child = await readModule(path.join(module.dirname, relativePath))
+            const childPath = path.join(module.dirname, relativePath)
+            let child = await readModule(childPath)
             // moduleMap's keys needs to be a relative path, since our require() function will take in a relative path
             module.moduleMap[relativePath] = child.id
+            if (checkedModules.has(childPath)) {
+                throw new Error(`Cyclic dependency detected at ${childPath}!`)
+            }
             queue.push(child)
+            checkedModules.add(childPath)
         }
         // if (!(modules.in)) modules.set(module.id, module)
+        
         modules.push(module)
     }
 
@@ -125,7 +128,7 @@ function bundle(graph) {
 
 (async () => {
     try {
-        let graph = await buildDependencyGraph('./example/functions/entry.js')
+        let graph = await buildDependencyGraph('./example/cyclic/name.js')
         bundle(graph)
     } catch (err) {
         console.log(err)
